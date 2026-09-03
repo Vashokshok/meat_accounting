@@ -1,0 +1,51 @@
+# Зависимости
+node_modules/
+vendor/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.temp
+*.cache
+
+# Среда и конфиги с секретами
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+
+# Папки сборки
+dist/
+build/
+out/
+target/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE (VS Code, IntelliJ, и т.д.)
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Архивы и дампы
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.sql
+*.dump

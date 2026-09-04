@@ -45,3 +45,25 @@ class OperationOut(BaseModel):
 class OperationListOut(BaseModel):
     items: list[OperationOut]
     total: int
+
+
+class OperationPatch(BaseModel):
+    """Частичное изменение (status менять нельзя)."""
+
+    type: OperationType | None = None
+    meat_type: MeatType | None = None
+    quantity: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=3)
+    operation_date: date | None = None
+    franchise_id: int | None = None
+    comment: str | None = Field(default=None, max_length=500)
+
+
+class OperationChangeOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    operation_id: int
+    changed_by: int
+    changed_at: datetime
+    old_data: dict
+    new_data: dict

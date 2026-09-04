@@ -6,8 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_db
 from app.models.operation import Operation
+from app.models.operation_change import OperationChange
 from app.models.user import User
-from app.schemas.operation import OperationCreate, OperationListOut, OperationOut
+from app.schemas.operation import (
+    OperationChangeOut,
+    OperationCreate,
+    OperationListOut,
+    OperationOut,
+    OperationPatch,
+)
 from app.services import operation_service
 
 router = APIRouter(prefix="/api/v1/operations", tags=["operations"])
@@ -71,3 +78,41 @@ async def one(
     if op is None:
         raise HTTPException(status_code=404, detail="Операция не найдена")
     return op
+
+
+@router.patch("/{op_id}", response_model=OperationOut)
+async def patch(
+    op_id: int,
+    data: OperationPatch,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Operation:
+    """Правка + аудит одной транзакцией."""
+    return await operation_service.update_operation(db, op_id, data, user.id)
+
+
+@router.post("/{op_id}/cancel", response_model=OperationOut)
+async def cancel(
+    op_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> Operation:
+    """Отмена без удаления (CANCELLED)."""
+    return await operation_service.cancel_operation(db, op_id, user.id)
+
+
+@router.get("/{op_id}/changes", response_model=list[OperationChangeOut])
+async def changes(
+    op_id: int,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> list:
+    """Аудит было → стало → кто → когда."""
+    rows = (
+        await db.execute(
+            select(OperationChange)
+            .where(OperationChange.operation_id == op_id)
+            .order_by(OperationChange.id)
+        )
+    ).scalars()
+    return list(rows)

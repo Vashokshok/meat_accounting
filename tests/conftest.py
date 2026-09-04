@@ -1,5 +1,6 @@
 """Фикстуры на реальном PostgreSQL (SQLite запрещён: нужны локи)."""
 
+import os
 from collections.abc import AsyncIterator
 
 import pytest_asyncio
@@ -17,7 +18,9 @@ from app.models.operation import Operation  # noqa: F401
 from app.models.operation_change import OperationChange  # noqa: F401
 from app.models.user import User
 
-TEST_URL = "postgresql+asyncpg://meat:meat@localhost:5434/meat_test"
+TEST_URL = os.getenv(
+    "TEST_DATABASE_URL", "postgresql+asyncpg://meat:meat@localhost:5434/meat_test"
+)
 TABLES = ("operation_changes", "operations", "franchises", "users")
 
 

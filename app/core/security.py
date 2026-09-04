@@ -23,9 +23,7 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def create_token(user_id: int) -> str:
     """JWT на 24ч (одна смена)."""
-    expire = datetime.now(UTC) + timedelta(
-        hours=settings.access_token_expire_hours
-    )
+    expire = datetime.now(UTC) + timedelta(hours=settings.access_token_expire_hours)
     return jwt.encode(
         {"sub": str(user_id), "exp": expire},
         settings.secret_key,

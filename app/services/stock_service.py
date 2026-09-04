@@ -15,9 +15,7 @@ def sign(op_type: str) -> int:
 
 async def lock_meat(db: AsyncSession, meat: str) -> None:
     """Сериализация расходов по виду мяса."""
-    await db.execute(
-        text("SELECT pg_advisory_xact_lock(hashtext(:mt))"), {"mt": meat}
-    )
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:mt))"), {"mt": meat})
 
 
 async def get_stock_for(db: AsyncSession, meat: MeatType | str) -> Decimal:

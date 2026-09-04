@@ -38,7 +38,10 @@ async def get_stock_for(db: AsyncSession, meat: MeatType | str) -> Decimal:
                 ),
                 0,
             )
-        ).where(Operation.meat_type == mt, Operation.status == OperationStatus.ACTIVE.value)
+        ).where(
+            Operation.meat_type == mt,
+            Operation.status == OperationStatus.ACTIVE.value,
+        )
     )
     return Decimal(total or 0)
 

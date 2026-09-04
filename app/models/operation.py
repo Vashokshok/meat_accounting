@@ -26,7 +26,9 @@ class Operation(Base):
     __tablename__ = "operations"
     __table_args__ = (
         CheckConstraint("quantity > 0", name="ck_operations_quantity_pos"),
-        Index("ix_operations_meat_status_date", "meat_type", "status", "operation_date"),
+        Index(
+            "ix_operations_meat_status_date", "meat_type", "status", "operation_date"
+        ),
         Index("ix_operations_status_created", "status", "created_at"),
     )
 

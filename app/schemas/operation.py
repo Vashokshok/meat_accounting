@@ -52,7 +52,9 @@ class OperationPatch(BaseModel):
 
     type: OperationType | None = None
     meat_type: MeatType | None = None
-    quantity: Decimal | None = Field(default=None, gt=0, max_digits=10, decimal_places=3)
+    quantity: Decimal | None = Field(
+        default=None, gt=0, max_digits=10, decimal_places=3
+    )
     operation_date: date | None = None
     franchise_id: int | None = None
     comment: str | None = Field(default=None, max_length=500)

@@ -74,7 +74,8 @@ async def one(
     _: User = Depends(get_current_user),
 ) -> Operation:
     """Одна операция по id."""
-    op = (await db.execute(select(Operation).where(Operation.id == op_id))).scalar_one_or_none()
+    res = await db.execute(select(Operation).where(Operation.id == op_id))
+    op = res.scalar_one_or_none()
     if op is None:
         raise HTTPException(status_code=404, detail="Операция не найдена")
     return op

@@ -1,0 +1,11 @@
+[project]
+name = "meat-accounting"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[tool.ruff]
+exclude = ["migrations", "__pycache__", ".venv", "venv"]
+
+[tool.ruff.lint]
+# B008 — идиома FastAPI: Depends(...) в аргументах по умолчанию
+ignore = ["B008"]

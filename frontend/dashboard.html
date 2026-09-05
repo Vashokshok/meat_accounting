@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+    <meta name="theme-color" content="#121212">
+    <title>Учёт мяса</title>
+
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+
+<body>
+    <div class="app">
+        <main class="dashboard">
+
+            <!-- Header -->
+            <header class="header">
+                <div>
+                    <h1 class="title">Учёт мяса</h1>
+                    <p class="date" id="current-date">—</p>
+                </div>
+            </header>
+
+            <!-- Stock -->
+            <section class="stock-grid" aria-label="Остатки мяса">
+
+                <article class="stock-card">
+                    <span class="stock-label">ФИЛЕ</span>
+
+                    <div class="stock-value-row">
+                        <strong
+                            class="stock-value"
+                            id="fillet-stock"
+                        >—</strong>
+
+                        <span class="stock-unit">кг</span>
+                    </div>
+                </article>
+
+                <article class="stock-card">
+                    <span class="stock-label">С КОЖЕЙ</span>
+
+                    <div class="stock-value-row">
+                        <strong
+                            class="stock-value"
+                            id="skin-stock"
+                        >—</strong>
+
+                        <span class="stock-unit">кг</span>
+                    </div>
+                </article>
+
+            </section>
+
+            <!-- New operation -->
+            <button
+                class="new-operation"
+                id="new-operation"
+                type="button"
+            >
+                <span class="plus">+</span>
+                <span>Новая операция</span>
+            </button>
+
+            <!-- Today -->
+            <section class="today-section">
+                <h2 class="section-title">Сегодня</h2>
+
+                <div class="today-card">
+
+                    <div class="operation-row">
+                        <span class="operation-name">Приход</span>
+                        <strong
+                            class="operation-value"
+                            id="incoming"
+                        >—</strong>
+                    </div>
+
+                    <div class="operation-row">
+                        <span class="operation-name">Вертель</span>
+                        <strong
+                            class="operation-value"
+                            id="vertel"
+                        >—</strong>
+                    </div>
+
+                    <div class="operation-row">
+                        <span class="operation-name">Франшиза</span>
+                        <strong
+                            class="operation-value"
+                            id="franchise"
+                        >—</strong>
+                    </div>
+
+                    <div class="operation-row total-row">
+                        <span class="operation-name">Остаток</span>
+                        <strong
+                            class="operation-value total-value"
+                            id="total-stock"
+                        >—</strong>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom navigation -->
+        <nav class="bottom-nav" aria-label="Основная навигация">
+
+            <a
+                href="/dashboard"
+                class="nav-item active"
+                aria-current="page"
+            >
+                <span class="nav-icon home-icon">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M3 10.5L12 3L21 10.5V20C21 20.55 20.55 21 20 21H4C3.45 21 3 20.55 3 20V10.5Z"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M9 21V14H15V21"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </span>
+
+                <span class="nav-label">Главная</span>
+                <span class="nav-dot"></span>
+            </a>
+
+            <a
+                href="/history"
+                class="nav-item"
+                id="history-link"
+            >
+                <span class="nav-icon">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M4 6H20"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M4 12H20"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M4 18H20"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </span>
+
+                <span class="nav-label">История</span>
+            </a>
+
+            <a
+                href="/reports"
+                class="nav-item"
+                id="reports-link"
+            >
+                <span class="nav-icon">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M5 20V10"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M12 20V4"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M19 20V8"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </span>
+
+                <span class="nav-label">Отчёты</span>
+            </a>
+
+        </nav>
+
+        <!-- Loading -->
+        <div
+            class="loading-overlay"
+            id="loading"
+            aria-hidden="true"
+        >
+            <div class="loader"></div>
+        </div>
+
+        <!-- Error message -->
+        <div
+            class="toast"
+            id="toast"
+            role="alert"
+            aria-live="polite"
+        ></div>
+
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

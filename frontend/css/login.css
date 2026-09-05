@@ -1,0 +1,332 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #121212;
+    --surface: #1e1e1e;
+    --orange: #f97316;
+    --orange-hover: #ea580c;
+    --white: #ffffff;
+    --gray: #a1a1a1;
+    --error: #f87171;
+
+    --radius: 10px;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--white);
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+/* =========================
+   Page
+   ========================= */
+
+.login-page {
+    width: 100%;
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+}
+
+/* =========================
+   Card
+   ========================= */
+
+.login-card {
+    width: 100%;
+    max-width: 358px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* =========================
+   Logo
+   ========================= */
+
+.logo {
+    width: 80px;
+    height: 80px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 24px;
+
+    border-radius: 20px;
+
+    background: var(--orange);
+
+    color: var(--white);
+
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* =========================
+   Typography
+   ========================= */
+
+h1 {
+    color: var(--white);
+
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+
+    text-align: center;
+}
+
+.subtitle {
+    margin-top: 8px;
+
+    color: var(--gray);
+
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.4;
+
+    text-align: center;
+}
+
+/* =========================
+   Form
+   ========================= */
+
+.login-form {
+    width: 100%;
+    margin-top: 42px;
+}
+
+.field {
+    width: 100%;
+}
+
+.field + .field {
+    margin-top: 18px;
+}
+
+.field label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: var(--gray);
+
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.field input {
+    width: 100%;
+    height: 48px;
+
+    padding: 0 16px;
+
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+
+    outline: none;
+
+    background: var(--surface);
+    color: var(--white);
+
+    font-size: 15px;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.field input::placeholder {
+    color: #666;
+}
+
+.field input:focus {
+    border-color: var(--orange);
+
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.12);
+}
+
+/* =========================
+   Error
+   ========================= */
+
+.login-error {
+    min-height: 20px;
+
+    margin-top: 12px;
+
+    color: var(--error);
+
+    font-size: 13px;
+    line-height: 1.4;
+
+    text-align: center;
+}
+
+.login-error:empty {
+    display: none;
+}
+
+/* =========================
+   Button
+   ========================= */
+
+.login-button {
+    position: relative;
+
+    width: 100%;
+    height: 52px;
+
+    margin-top: 4px;
+
+    border: none;
+    border-radius: 12px;
+
+    background: var(--orange);
+    color: var(--bg);
+
+    font-size: 16px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        transform 0.1s ease,
+        opacity 0.15s ease;
+}
+
+.login-button:hover {
+    background: var(--orange-hover);
+}
+
+.login-button:active {
+    transform: translateY(1px);
+}
+
+.login-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* =========================
+   Spinner
+   ========================= */
+
+.spinner {
+    display: none;
+
+    width: 18px;
+    height: 18px;
+
+    margin-left: 8px;
+
+    vertical-align: middle;
+
+    border: 2px solid rgba(18, 18, 18, 0.25);
+    border-top-color: var(--bg);
+
+    border-radius: 50%;
+
+    animation: spin 0.7s linear infinite;
+}
+
+.login-button.loading #login-button-text {
+    opacity: 0.7;
+}
+
+.login-button.loading .spinner {
+    display: inline-block;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================
+   Hint
+   ========================= */
+
+.users-hint {
+    margin-top: 18px;
+
+    color: var(--gray);
+
+    font-size: 12px;
+    font-weight: 400;
+
+    text-align: center;
+}
+
+/* =========================
+   Mobile
+   ========================= */
+
+@media (max-width: 480px) {
+    .login-page {
+        padding: 20px;
+    }
+
+    .login-card {
+        max-width: 358px;
+    }
+
+    .logo {
+        width: 80px;
+        height: 80px;
+    }
+
+    .login-form {
+        margin-top: 38px;
+    }
+}
+
+/* =========================
+   Reduced motion
+   ========================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+

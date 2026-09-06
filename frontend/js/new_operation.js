@@ -459,6 +459,50 @@ document
         );
     });
 
+document.addEventListener("DOMContentLoaded", () => {
+    document
+        .querySelectorAll("[data-operation-type]")
+        .forEach((button) => {
+            button.addEventListener("click", async () => {
+                clearError();
+
+                await selectOperationType(
+                    button.dataset.operationType
+                );
+            });
+        });
+
+    document
+        .querySelectorAll("[data-meat-type]")
+        .forEach((button) => {
+            button.addEventListener("click", () => {
+                clearError();
+
+                selectedMeatType =
+                    button.dataset.meatType;
+
+                updateMeatButtons();
+            });
+        });
+
+    form.addEventListener(
+        "submit",
+        submitOperation
+    );
+
+    backButton.addEventListener(
+        "click",
+        () => {
+            window.location.href = "/dashboard";
+        }
+    );
+
+    operationDateInput.value =
+        getMoscowTodayISO();
+
+    updateOperationTypeButtons();
+    updateMeatButtons();
+});
 
 form.addEventListener(
     "submit",

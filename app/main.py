@@ -23,11 +23,12 @@ app = FastAPI(title="Meat accounting")
 register_handlers(app)
 
 app.include_router(auth_router)
+app.include_router(operations_router)
 app.include_router(stock_router)
 app.include_router(franchises_router)
 app.include_router(reports_router)
 app.include_router(exports_router)
-app.include_router(operations_router)
+
 
 app.mount(
     "/static",
@@ -51,7 +52,7 @@ async def dashboard_page() -> FileResponse:
 
 @app.get("/new-operation", include_in_schema=False)
 async def new_operation_page() -> FileResponse:
-    return FileResponse(FRONTEND_DIR / "new-operation.html")
+    return FileResponse(FRONTEND_DIR / "new_operation.html")
 
 @app.get("/api/v1/health")
 async def health() -> dict:

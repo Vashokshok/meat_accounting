@@ -34,16 +34,20 @@ function getToken() {
 }
 
 function showLoading() {
-    elements.loading.classList.add("visible");
+    elements.loading?.classList.add("visible");
 }
 
 function hideLoading() {
-    elements.loading.classList.remove("visible");
+    elements.loading?.classList.remove("visible");
 }
 
 let toastTimer = null;
 
 function showToast(message) {
+    if (!elements.toast) {
+        return;
+    }
+
     clearTimeout(toastTimer);
 
     elements.toast.textContent = message;
@@ -170,8 +174,11 @@ async function checkAuth() {
         await apiFetch(API.me);
         return true;
     } catch (error) {
+        console.error("Auth error:", error);
+
         localStorage.removeItem(TOKEN_KEY);
         window.location.href = "/";
+
         return false;
     }
 }
@@ -199,23 +206,6 @@ function extractStockValue(stock, possibleKeys) {
 }
 
 function renderStock(data) {
-    /*
-     * Поддерживаем несколько распространённых вариантов
-     * структуры ответа API.
-     *
-     * Например:
-     * {
-     *   "fillet": 12.5,
-     *   "skin": 8
-     * }
-     *
-     * или:
-     * {
-     *   "fillet_stock": 12.5,
-     *   "skin_stock": 8
-     * }
-     */
-
     const source = data?.data || data;
 
     const fillet = extractStockValue(source, [
@@ -246,13 +236,16 @@ function renderStock(data) {
 async function loadStock() {
     try {
         const data = await apiFetch(API.stock);
+
         renderStock(data);
+
         return data;
     } catch (error) {
         console.error("Stock error:", error);
 
         setText(elements.filletStock, "—");
         setText(elements.skinStock, "—");
+        setText(elements.totalStock, "—");
 
         showToast("Не удалось загрузить остатки");
 
@@ -275,7 +268,7 @@ function getOperationType(operation) {
         operation.operation ??
         operation.kind ??
         ""
-    ).toLowerCase();
+    ).toLowerCase().trim();
 }
 
 function getOperationAmount(operation) {
@@ -333,6 +326,20 @@ function getOperationsArray(data) {
     return [];
 }
 
+/*
+ * Backend использует:
+ *
+ * INCOMING  — поступление
+ * SPIT      — вертель
+ * WRITE_OFF — списание
+ * CONVECTION — конвекция
+ * FRANCHISE — франшиза
+ *
+ * Здесь отображаем:
+ * поступление -> плюс
+ * вертель     -> минус
+ * франшиза    -> минус
+ */
 function renderOperations(data) {
     const operations = getOperationsArray(data);
 
@@ -341,57 +348,84 @@ function renderOperations(data) {
     let franchise = 0;
 
     for (const operation of operations) {
-        /*
-         * Если API возвращает дату операции, показываем
-         * только сегодняшние операции.
-         *
-         * Если даты нет — считаем запись актуальной.
-         */
         const operationDate =
             operation.date ??
             operation.created_at ??
             operation.createdAt ??
             operation.operation_date;
 
+        /*
+         * Показываем операции только за сегодня.
+         * Если даты нет — считаем запись актуальной.
+         */
         if (operationDate && !isToday(operationDate)) {
             continue;
         }
 
         const type = getOperationType(operation);
-        const amount = getOperationAmount(operation);
+        const amount = Math.abs(getOperationAmount(operation));
 
+        /*
+         * ПОСТУПЛЕНИЕ
+         */
         if (
-            type.includes("приход") ||
-            type.includes("income") ||
-            type.includes("arrival") ||
-            type.includes("receipt")
+            type === "incoming" ||
+            type === "income" ||
+            type === "arrival" ||
+            type === "receipt" ||
+            type.includes("приход")
         ) {
-            incoming += Math.abs(amount);
+            incoming += amount;
+            continue;
         }
 
+        /*
+         * ВЕРТЕЛЬ
+         *
+         * Backend: SPIT
+         */
         if (
-            type.includes("верт") ||
-            type.includes("vertel")
+            type === "spit" ||
+            type === "vertel" ||
+            type === "vertel" ||
+            type.includes("верт")
         ) {
-            vertel -= Math.abs(amount);
+            vertel -= amount;
+            continue;
         }
 
+        /*
+         * ФРАНШИЗА
+         */
         if (
-            type.includes("франш") ||
-            type.includes("franchise")
+            type === "franchise" ||
+            type.includes("франш")
         ) {
-            franchise -= Math.abs(amount);
+            franchise -= amount;
+            continue;
         }
     }
 
-    setText(elements.incoming, formatSignedKg(incoming));
-    setText(elements.vertel, formatSignedKg(vertel));
-    setText(elements.franchise, formatSignedKg(franchise));
+    setText(
+        elements.incoming,
+        formatSignedKg(incoming)
+    );
+
+    setText(
+        elements.vertel,
+        formatSignedKg(vertel)
+    );
+
+    setText(
+        elements.franchise,
+        formatSignedKg(franchise)
+    );
 }
 
 async function loadOperations() {
     try {
         const data = await apiFetch(API.operations);
+
         renderOperations(data);
 
         return data;
@@ -402,11 +436,6 @@ async function loadOperations() {
         setText(elements.vertel, "—");
         setText(elements.franchise, "—");
 
-        /*
-         * Не показываем отдельный toast:
-         * остатки всё равно могут успешно загрузиться.
-         */
-
         return null;
     }
 }
@@ -416,9 +445,7 @@ async function loadOperations() {
 -------------------------------------------------- */
 
 function setupNewOperationButton() {
-    if (!elements.newOperation) return;
-
-    elements.newOperation.addEventListener("click", () => {
+    elements.newOperation?.addEventListener("click", () => {
         window.location.href = "/new-operation";
     });
 }
@@ -431,18 +458,15 @@ function setupNavigation() {
     const historyLink = document.getElementById("history-link");
     const reportsLink = document.getElementById("reports-link");
 
-    /*
-     * Пока страницы History/Reports не созданы,
-     * не даём браузеру уходить на несуществующий URL.
-     */
-
     historyLink?.addEventListener("click", (event) => {
         event.preventDefault();
+
         showToast("Раздел «История» пока не подключён");
     });
 
     reportsLink?.addEventListener("click", (event) => {
         event.preventDefault();
+
         showToast("Раздел «Отчёты» пока не подключён");
     });
 }
@@ -463,11 +487,6 @@ async function initDashboard() {
     showLoading();
 
     try {
-        /*
-         * Загружаем оба блока независимо.
-         * Если один endpoint временно недоступен,
-         * второй всё равно будет отображён.
-         */
         await Promise.all([
             loadStock(),
             loadOperations(),
@@ -479,5 +498,4 @@ async function initDashboard() {
 
 setupNewOperationButton();
 setupNavigation();
-
 initDashboard();

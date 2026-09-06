@@ -416,18 +416,10 @@ async function loadOperations() {
 -------------------------------------------------- */
 
 function setupNewOperationButton() {
-    elements.newOperation.addEventListener("click", () => {
-        /*
-         * Страница создания операции пока не входит
-         * в присланный Figma-макет.
-         *
-         * Когда будет готов её HTML, здесь достаточно
-         * заменить alert на:
-         *
-         * window.location.href = "/operations/new";
-         */
+    if (!elements.newOperation) return;
 
-        showToast("Форма новой операции будет здесь");
+    elements.newOperation.addEventListener("click", () => {
+        window.location.href = "/new-operation";
     });
 }
 

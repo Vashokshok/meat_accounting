@@ -27,6 +27,7 @@ app.include_router(stock_router)
 app.include_router(franchises_router)
 app.include_router(reports_router)
 app.include_router(exports_router)
+app.include_router(operations_router)
 
 app.mount(
     "/static",
@@ -47,6 +48,10 @@ async def login_page() -> FileResponse:
 @app.get("/dashboard", include_in_schema=False)
 async def dashboard_page() -> FileResponse:
     return FileResponse(FRONTEND_DIR / "dashboard.html")
+
+@app.get("/new-operation", include_in_schema=False)
+async def new_operation_page() -> FileResponse:
+    return FileResponse(FRONTEND_DIR / "new-operation.html")
 
 @app.get("/api/v1/health")
 async def health() -> dict:

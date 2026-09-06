@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+    <meta name="theme-color" content="#121212">
+
+    <title>Новая операция</title>
+
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/new-operation.css">
+</head>
+
+<body>
+    <div class="operation-app">
+
+        <main class="operation-page">
+
+            <header class="operation-header">
+                <button
+                    class="back-button"
+                    id="back-button"
+                    type="button"
+                    aria-label="Назад"
+                >
+                    ←
+                </button>
+
+                <div>
+                    <h1 class="operation-title">Новая операция</h1>
+                    <p class="operation-subtitle">
+                        Шаг 1 из 2 — тип
+                    </p>
+                </div>
+            </header>
+
+            <form id="operation-form" novalidate>
+
+                <!-- Тип операции -->
+                <section class="operation-section">
+
+                    <div class="type-grid">
+
+                        <button
+                            class="choice-button"
+                            type="button"
+                            data-operation-type="INCOMING"
+                        >
+                            Поступление
+                        </button>
+
+                        <button
+                            class="choice-button"
+                            type="button"
+                            data-operation-type="SPIT"
+                        >
+                            Вертель
+                        </button>
+
+                        <button
+                            class="choice-button"
+                            type="button"
+                            data-operation-type="WRITE_OFF"
+                        >
+                            Списание
+                        </button>
+
+                        <button
+                            class="choice-button"
+                            type="button"
+                            data-operation-type="CONVECTION"
+                        >
+                            Конвектомат
+                        </button>
+
+                        <button
+                            class="choice-button choice-button-full"
+                            type="button"
+                            data-operation-type="FRANCHISE"
+                        >
+                            Франшиза
+                        </button>
+
+                    </div>
+
+                </section>
+
+                <!-- Данные -->
+                <section class="operation-section">
+
+                    <h2 class="step-title">
+                        Шаг 2 — данные
+                    </h2>
+
+                    <!-- Вид мяса -->
+                    <div class="field-group">
+
+                        <div class="meat-grid">
+
+                            <button
+                                class="choice-button meat-button"
+                                type="button"
+                                data-meat-type="FILLET"
+                            >
+                                Филе
+                            </button>
+
+                            <button
+                                class="choice-button meat-button"
+                                type="button"
+                                data-meat-type="SKIN"
+                            >
+                                С кожей
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Количество -->
+                    <div class="field-group">
+
+                        <label
+                            class="field-label"
+                            for="quantity"
+                        >
+                            Количество, кг
+                        </label>
+
+                        <input
+                            class="form-input"
+                            id="quantity"
+                            name="quantity"
+                            type="number"
+                            min="0.001"
+                            max="9999999"
+                            step="0.001"
+                            inputmode="decimal"
+                            placeholder="0"
+                            required
+                        >
+
+                    </div>
+
+                    <!-- Франшиза -->
+                    <div
+                        class="field-group franchise-field hidden"
+                        id="franchise-field"
+                    >
+
+                        <label
+                            class="field-label"
+                            for="franchise-id"
+                        >
+                            Франшиза
+                        </label>
+
+                        <select
+                            class="form-input"
+                            id="franchise-id"
+                            name="franchise_id"
+                        >
+                            <option value="">
+                                Выберите франшизу
+                            </option>
+                        </select>
+
+                    </div>
+
+                    <!-- Дата -->
+                    <div class="field-group">
+
+                        <label
+                            class="field-label"
+                            for="operation-date"
+                        >
+                            Дата
+                        </label>
+
+                        <input
+                            class="form-input"
+                            id="operation-date"
+                            name="operation_date"
+                            type="date"
+                            required
+                        >
+
+                    </div>
+
+                </section>
+
+                <div
+                    class="form-error"
+                    id="operation-error"
+                    role="alert"
+                    aria-live="polite"
+                ></div>
+
+                <button
+                    class="save-button"
+                    id="save-operation"
+                    type="submit"
+                >
+                    <span id="save-button-text">
+                        Сохранить
+                    </span>
+
+                    <span
+                        class="button-spinner"
+                        id="save-spinner"
+                        aria-hidden="true"
+                    ></span>
+                </button>
+
+            </form>
+
+        </main>
+
+        <!-- Нижняя навигация -->
+        <nav
+            class="bottom-nav"
+            aria-label="Основная навигация"
+        >
+
+            <a
+                href="/dashboard"
+                class="nav-item"
+            >
+                <span class="nav-icon">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M3 10.5L12 3L21 10.5V20C21 20.55 20.55 21 20 21H4C3.45 21 3 20.55 3 20V10.5Z"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linejoin="round"
+                        />
+                        <path
+                            d="M9 21V14H15V21"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linejoin="round"
+                        />
+                    </svg>
+                </span>
+
+                <span class="nav-label">Главная</span>
+            </a>
+
+            <a
+                href="/history"
+                class="nav-item"
+            >
+                <span class="nav-icon">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M4 6H20"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M4 12H20"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M4 18H20"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </span>
+
+                <span class="nav-label">История</span>
+            </a>
+
+            <a
+                href="/reports"
+                class="nav-item"
+            >
+                <span class="nav-icon">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M5 20V10"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M12 20V4"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M19 20V8"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </span>
+
+                <span class="nav-label">Отчёты</span>
+            </a>
+
+        </nav>
+
+        <div
+            class="loading-overlay"
+            id="loading"
+            aria-hidden="true"
+        >
+            <div class="loader"></div>
+        </div>
+
+    </div>
+
+    <script src="/static/js/new-operation.js"></script>
+</body>
+</html>

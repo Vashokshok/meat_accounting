@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta name="theme-color" content="#121212">
+
+    <title>История — Учёт мяса</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/history.css"
+    >
+    <script src="/static/js/history.js" defer></script>
+</head>
+
+<body>
+
+<div class="app">
+
+    <main class="history-page">
+
+        <!-- Header -->
+        <header class="history-header">
+            <h1>История</h1>
+
+            <p class="history-subtitle">
+                Все операции
+            </p>
+        </header>
+
+
+        <!-- Filters -->
+        <section class="filters" aria-label="Фильтр операций">
+
+            <button
+                type="button"
+                class="filter-button active"
+                data-filter="all"
+            >
+                Все
+            </button>
+
+            <button
+                type="button"
+                class="filter-button"
+                data-filter="SPIT"
+            >
+                Вертель
+            </button>
+
+            <button
+                type="button"
+                class="filter-button"
+                data-filter="INCOMING"
+            >
+                Приход
+            </button>
+
+        </section>
+
+
+        <!-- Loading -->
+        <div
+            class="history-state"
+            id="loading-state"
+        >
+            Загрузка...
+        </div>
+
+
+        <!-- Error -->
+        <div
+            class="history-state history-error"
+            id="error-state"
+            hidden
+        >
+            Не удалось загрузить историю.
+            <button
+                type="button"
+                id="retry-button"
+            >
+                Повторить
+            </button>
+        </div>
+
+
+        <!-- Empty -->
+        <div
+            class="history-state"
+            id="empty-state"
+            hidden
+        >
+            Операций пока нет.
+        </div>
+
+
+        <!-- Operations -->
+        <section
+            class="operations-list"
+            id="operations-list"
+            aria-live="polite"
+        ></section>
+
+    </main>
+
+
+    <!-- Bottom navigation -->
+    <nav
+        class="bottom-nav"
+        aria-label="Основная навигация"
+    >
+
+        <a
+            href="/dashboard"
+            class="nav-item"
+        >
+            <span class="nav-icon">
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M3 10.5L12 3L21 10.5V20C21 20.55 20.55 21 20 21H4C3.45 21 3 20.55 3 20V10.5Z"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linejoin="round"
+                    />
+
+                    <path
+                        d="M9 21V14H15V21"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linejoin="round"
+                    />
+                </svg>
+            </span>
+
+            <span class="nav-label">
+                Главная
+            </span>
+        </a>
+
+
+        <a
+            href="/history"
+            class="nav-item active"
+            aria-current="page"
+        >
+            <span class="nav-icon">
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M4 6H20"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+
+                    <path
+                        d="M4 12H20"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+
+                    <path
+                        d="M4 18H20"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+                </svg>
+            </span>
+
+            <span class="nav-label">
+                История
+            </span>
+
+            <span class="nav-dot"></span>
+        </a>
+
+
+        <a
+            href="/reports"
+            class="nav-item"
+        >
+            <span class="nav-icon">
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M5 20V10"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+
+                    <path
+                        d="M12 20V4"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+
+                    <path
+                        d="M19 20V8"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                    />
+                </svg>
+            </span>
+
+            <span class="nav-label">
+                Отчёты
+            </span>
+        </a>
+
+    </nav>
+
+</div>
+
+
+<script src="/static/js/history.js" defer></script>
+
+</body>
+</html>

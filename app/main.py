@@ -54,6 +54,11 @@ async def dashboard_page() -> FileResponse:
 async def new_operation_page() -> FileResponse:
     return FileResponse(FRONTEND_DIR / "new_operation.html")
 
+
+@app.get("/history", include_in_schema=False)
+async def history_page() -> FileResponse:
+    return FileResponse(FRONTEND_DIR / "history.html")
+
 @app.get("/api/v1/health")
 async def health() -> dict:
     async with engine.connect() as conn:

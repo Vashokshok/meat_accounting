@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.exports import router as exports_router
@@ -18,6 +19,8 @@ from app.api.routes.stock import router as stock_router
 from app.core.config import settings
 from app.core.database import engine
 from app.core.exceptions import register_handlers
+
+logger = logging.getLogger(__name__)
 
 
 def setup_logging() -> None:
@@ -106,8 +109,9 @@ async def readiness() -> dict:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         return {"status": "ready", "database": "connected"}
-    except Exception as e:
-        return {"status": "not ready", "database": "disconnected", "error": str(e)}
+    except SQLAlchemyError:
+        logger.exception("Database readiness check failed")
+        return {"status": "not ready", "database": "disconnected"}
 
 
 # Старый health для совместимости

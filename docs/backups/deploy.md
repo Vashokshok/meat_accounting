@@ -1,102 +1,129 @@
-# Выкладка на сервер
+# Выкладка на Linux-сервер
 
-Что нужно сделать на сервере, чтобы система бэкапов заработала как на рабочей
-машине. Все команды — от администратора сервера.
+Production-запуск: FastAPI обслуживает API и готовые страницы из `frontend/`.
+Next.js-прототип из `frontend/app/` на сервере не запускается.
 
-## Шаг 1. Развернуть БД (Docker)
+## Требования
 
-На сервере должен быть установлен Docker. Создать контейнер с тем же именем,
-что и в скрипте, и с томом (том обязателен — данные переживут пересоздание
-контейнера):
+- Linux-сервер с публичным DNS-именем, указывающим на него.
+- Docker Engine с плагином Docker Compose.
+- Nginx и Certbot с плагином для Nginx.
+- Открытые входящие порты 80 и 443.
 
-```bash
-docker run -d --name meat_db --restart unless-stopped \
-  -e POSTGRES_USER=meat -e POSTGRES_PASSWORD=meat -e POSTGRES_DB=meat \
-  -p 127.0.0.1:5434:5432 \
-  -v /var/lib/meat_db_data:/var/lib/postgresql/data \
-  postgres:18-alpine
-```
+## 1. Подготовить файлы и секреты
 
-После этого развернуть схему и сид (миграции + `scripts/seed.py`), как описано
-в корневом README. Проверка доступа:
+Получите код на сервер (клонируйте опубликованный Git-репозиторий или скопируйте
+рабочую копию), перейдите в корень проекта и создайте `.env`:
 
 ```bash
-docker exec -it meat_db psql -U meat -d meat -c "select 1;"
+cd /opt/meat_accounting
+cp .env.example .env
+chmod 600 .env
+openssl rand -hex 32
+openssl rand -hex 32
 ```
 
-## Шаг 2. Перенести код и скрипт
+Вставьте два разных результата команд в `.env`: первый как
+`POSTGRES_PASSWORD`, второй как `SECRET_KEY`. Заполните доменное имя в
+Nginx-конфигурации ниже. Не публикуйте и не коммитьте `.env`.
+
+`SECRET_KEY` обязателен, должен содержать не менее 32 символов и не может быть
+примером или стандартным значением. API откажется запускаться без него.
+`DATABASE_URL` формируется Compose из настроек PostgreSQL в `.env`; миграции
+автоматически используют тот же адрес с синхронным драйвером.
+
+## 2. Запустить приложение
 
 ```bash
-git clone <репозиторий> /var/www/meat_accounting
-chmod +x /var/www/meat_accounting/scripts/backup.sh
-mkdir -p /var/backups/meat
+docker compose up -d --build
+docker compose ps
+docker compose logs --tail=100 app
 ```
 
-## Шаг 3. Прогнать первый бэкап вручную
+Контейнер `app` применяет миграции перед запуском Uvicorn без `--reload`.
+PostgreSQL не публикует порт наружу, сохраняет данные в Docker volume и
+стартует раньше API. API опубликован только на `127.0.0.1:8000` для Nginx.
+Проверьте readiness:
 
 ```bash
-/var/www/meat_accounting/scripts/backup.sh
-ls -lh /var/backups/meat/
-cat /var/backups/meat/backup.log
+curl --fail http://127.0.0.1:8000/api/v1/health
 ```
 
-Должен появиться файл `meat_<дата>_<время>.dump` и строка `OK:` в логе.
-
-## Шаг 4. Поставить расписание
-
-### Linux (рекомендуется)
+Создайте учётные записи сотрудников интерактивно. Повторный запуск не меняет
+пароли существующих пользователей:
 
 ```bash
-crontab -e
-# строка: каждый понедельник в 02:00
-0 2 * * 1 /var/www/meat_accounting/scripts/backup.sh >> /var/backups/meat/cron.log 2>&1
+docker compose exec app python scripts/seed.py
 ```
 
-Проверка: `crontab -l`. Первый автоматический бэкап — понедельник в 02:00.
+Введите логин, пароль длиной 12–100 символов и подтверждение для каждого
+сотрудника; пустой логин завершает ввод. Пароли не выводятся на экран.
 
-### Если сервер Windows — Планировщик
+## 3. Настроить HTTPS через Nginx
 
-```powershell
-$script = "C:\путь\meat_accounting\scripts\backup.ps1"
-$action  = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`""
-$trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At 2am
-$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2)
-Register-ScheduledTask -TaskName "MeatAccounting_WeeklyBackup" -Action $action -Trigger $trigger -Settings $settings
+Убедитесь, что DNS-запись домена указывает на сервер. Установите конфигурацию:
+
+```bash
+sudo cp deploy/nginx/meat-accounting.conf /etc/nginx/sites-available/meat-accounting
 ```
 
-Если бэкап должен работать при выключенной сессии пользователя — регистрировать
-с паролем (нужны админ-права):
+В `/etc/nginx/sites-available/meat-accounting` замените `meat.example.com` на
+ваш домен, включите сайт и выпустите сертификат:
 
-```powershell
-Register-ScheduledTask -TaskName "MeatAccounting_WeeklyBackup" -User "Ibra" -Password "<пароль>" -Action $action -Trigger $trigger
+```bash
+sudo ln -s /etc/nginx/sites-available/meat-accounting /etc/nginx/sites-enabled/meat-accounting
+sudo nginx -t
+sudo systemctl reload nginx
+sudo certbot --nginx --redirect -d ваш-домен
 ```
 
-## Шаг 5. Проверить восстановление сразу после выкладки
+Проверьте `https://ваш-домен/` и вход сотрудника. Certbot добавит TLS-настройки
+и перенаправление HTTP на HTTPS. API не должен быть доступен извне напрямую:
+оставьте Compose-привязку к loopback и не открывайте порт 8000 в firewall.
 
-Тестовый restore на отдельной базе:
+## 4. Настроить и проверить резервное копирование
+
+Скрипт использует ID контейнера БД, который возвращает Compose. Настройте каталог,
+доступный пользователю cron и Docker:
+
+```bash
+sudo mkdir -p /var/backups/meat
+sudo chmod 750 /var/backups/meat
+chmod +x scripts/backup.sh
+CONTAINER="$(docker compose ps -q db)" BACKUP_DIR=/var/backups/meat scripts/backup.sh
+```
+
+Убедитесь, что появился `.dump` и в логе есть `OK:`. Добавьте расписание
+пользователю, который имеет доступ к Docker и каталогу резервных копий:
+
+```cron
+0 2 * * 1 cd /opt/meat_accounting && CONTAINER="$(docker compose ps -q db)" BACKUP_DIR=/var/backups/meat /opt/meat_accounting/scripts/backup.sh >> /var/backups/meat/cron.log 2>&1
+```
+
+В примере используются `DB_USER=meat` и `DB_NAME=meat`; если значения в `.env`
+изменены, передайте соответствующие переменные скрипту. Скрипт хранит дампы 60
+дней. Настройте копирование бэкапов на другой сервер
+или объектное хранилище: резервная копия на том же диске не защищает от его
+отказа.
+
+Проверьте восстановление на отдельную базу (в примере используются настройки
+по умолчанию `meat`):
 
 ```bash
 DUMP=$(ls -t /var/backups/meat/meat_*.dump | head -1)
-docker exec -i meat_db createdb -U meat meat_restore_test
-docker exec -i meat_db pg_restore -U meat -d meat_restore_test < $DUMP
-docker exec -it meat_db psql -U meat -d meat_restore_test -c "select count(*) from operations;"
-docker exec -i meat_db dropdb -U meat meat_restore_test
+DB_CONTAINER=$(docker compose ps -q db)
+docker exec -i "$DB_CONTAINER" createdb -U meat meat_restore_test
+docker exec -i "$DB_CONTAINER" pg_restore -U meat -d meat_restore_test < "$DUMP"
+docker exec -i "$DB_CONTAINER" dropdb -U meat meat_restore_test
 ```
 
-## Шаг 6. Резервная копия вне сервера (рекомендуется)
-
-Бэкапы на том же диске не спасают от сбоя диска. Копировать в сетевую
-папку/объектное хранилище после ротации:
+## Проверка после перезапуска
 
 ```bash
-# добавить строками в crontab (сервер-НСА хранит копии)
-0 3 * * 1 rsync -a /var/backups/meat/ backup@nas:/srv/backups/meat/
+docker compose restart
+docker compose ps
+curl --fail https://ваш-домен/api/v1/health
 ```
 
-## Чек-лист прода
-
-- [ ] Контейнер `meat_db` с томом, переживает перезагрузку
-- [ ] `backup.sh` выполняется и пишет `OK:` в лог
-- [ ] Cron/Планировщик на понедельник 02:00
-- [ ] Тестовый restore прошёл без ошибок
-- [ ] Копия бэкапов уходит на внешнее хранилище
+Убедитесь, что сервисы healthy, вход работает, данные сохранились после
+перезапуска, HTTPS включён и тестовое восстановление прошло без ошибок.

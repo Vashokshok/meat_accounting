@@ -7,7 +7,8 @@
 1. Восстанавливаем ТОЛЬКО в пустую базу или с `--clean --if-exists`.
    Поверх живых данных одного дампа — нельзя.
 2. Если восстанавливаем на рабочую базу: сначала остановить приложение
-   (uvicorn), чтобы во время восстановления никто не писал в БД.
+   (`docker compose stop app` на Linux; остановить Uvicorn на Windows), чтобы
+   во время восстановления никто не писал в БД.
 3. Перед восстановлением крупных данных сделать свежий дамп текущего состояния.
 4. Смотреть и восстанавливать — только через `pg_restore`, не трогая файл руками
    (он бинарный, правка ломает дамп).
@@ -19,7 +20,7 @@
 docker exec -i meat_db pg_restore -U meat -d meat --clean --if-exists < C:\backups\meat\meat_2026-09-29_0101.dump
 
 # Linux
-docker exec -i meat_db pg_restore -U meat -d meat --clean --if-exists < /var/backups/meat/meat_2026-09-29_0101.dump
+docker compose exec -T db pg_restore -U meat -d meat --clean --if-exists < /var/backups/meat/meat_2026-09-29_0101.dump
 ```
 
 `--clean` — удалить существующие объекты перед созданием;
@@ -33,25 +34,25 @@ docker exec -it meat_db psql -U meat -d meat -c "CREATE DATABASE meat_restore_te
 docker exec -i meat_db pg_restore -U meat -d meat_restore_test < C:\backups\meat\meat_2026-09-29_0101.dump
 
 # Linux
-docker exec -i meat_db createdb -U meat meat_restore_test
-docker exec -i meat_db pg_restore -U meat -d meat_restore_test < /var/backups/meat/meat_2026-09-29_0101.dump
+docker compose exec -T db createdb -U meat meat_restore_test
+docker compose exec -T db pg_restore -U meat -d meat_restore_test < /var/backups/meat/meat_2026-09-29_0101.dump
 ```
 
 ## Выборочное восстановление (одна таблица)
 
 ```bash
 # данные таблицы operations в существующую базу
-docker exec -i meat_db pg_restore -U meat -d meat_restore_test -t operations < C:\backups\meat\meat_2026-09-29_0101.dump
+docker compose exec -T db pg_restore -U meat -d meat_restore_test -t operations < /var/backups/meat/meat_2026-09-29_0101.dump
 
 # структура конкретной таблицы (без данных)
-docker exec -i meat_db pg_restore -U meat -d meat_restore_test -t operations --schema-only < C:\backups\meat\meat_2026-09-29_0101.dump
+docker compose exec -T db pg_restore -U meat -d meat_restore_test -t operations --schema-only < /var/backups/meat/meat_2026-09-29_0101.dump
 ```
 
 ## Восстановление в другую базу с переименованием
 
 ```bash
-docker exec -i meat_db createdb -U meat meat_new
-docker exec -i meat_db pg_restore -U meat -d meat_new --no-owner --no-privileges < C:\backups\meat\meat_2026-09-29_0101.dump
+docker compose exec -T db createdb -U meat meat_new
+docker compose exec -T db pg_restore -U meat -d meat_new --no-owner --no-privileges < /var/backups/meat/meat_2026-09-29_0101.dump
 ```
 
 `--no-owner` — владельцы объектов из дампа не применяются (полезно при
@@ -61,10 +62,10 @@ docker exec -i meat_db pg_restore -U meat -d meat_new --no-owner --no-privileges
 
 ```bash
 # Сколько операций восстановилось
-docker exec -it meat_db psql -U meat -d meat -c "select count(*) from operations;"
+docker compose exec -T db psql -U meat -d meat -c "select count(*) from operations;"
 
 # Видны ли остатки двух видов мяса
-docker exec -it meat_db psql -U meat -d meat -c "select meat_type, sum(quantity) from operations where status='ACTIVE' group by meat_type;"
+docker compose exec -T db psql -U meat -d meat -c "select meat_type, sum(quantity) from operations where status='ACTIVE' group by meat_type;"
 ```
 
 ## Автовыбор файла

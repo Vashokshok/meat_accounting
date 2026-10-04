@@ -14,8 +14,8 @@
 
 | Симптом | Причина | Решение |
 |---|---|---|
-| В логе `container not running` | Контейнер `meat_db` выключен | `docker start meat_db` или `docker ps -a` |
-| В логе `pg_dump failed` | Нет доступа пользователя `meat` | Проверить: `docker exec -it meat_db psql -U meat -d meat` |
+| В логе `container not running` | Контейнер БД выключен | Linux: `docker compose start db`; Windows: `docker start meat_db` |
+| В логе `pg_dump failed` | Нет доступа пользователя БД | Linux: `docker compose exec db psql -U meat -d meat`; Windows: `docker exec -it meat_db psql -U meat -d meat` |
 | Файл дампа 0 байт | Сбой записи, диск заполнен | `df -h`, удалить старые дампы вручную |
 | `pg_restore -l` ругается / пусто | Дамп повреждён | Восстановить предыдущий дамп, проверить ротацию |
 | Задача не появляется (Windows) | Планировщик не запустил | `Get-ScheduledTaskInfo -TaskName MeatAccounting_WeeklyBackup`; перерегистрировать по `deploy.md` |
@@ -45,9 +45,9 @@ du -sh /var/backups/meat   # размер каталога, чтобы мест�
 
 1. Раз в месяц — тренировочное восстановление в пустую базу (см. `restore.md`)
    и прогон тестов: `pytest tests/`.
-2. Ручной бэкап сразу после выкладки крупной миграции:
-   `docker exec meat_db pg_dump -U meat -Fc -Z9 -f /tmp/manual.dump meat` +
-   `docker cp meat_db:/tmp/manual.dump C:\backups\meat\manual_<дата>.dump`.
+2. Ручной бэкап сразу после выкладки крупной миграции: Linux — запустить
+   `scripts/backup.sh` с `CONTAINER="$(docker compose ps -q db)"`;
+   Windows — использовать `scripts/backup.ps1`.
 3. Бэкапы на том же диске — не полноценная защита: настроить копию на внешнее
    хранилище (шаг 6 `deploy.md`).
 4. Дампы НЕ зашифрованы: бинарный формат — это не секретность. Кто получил

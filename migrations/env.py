@@ -2,12 +2,13 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import pool, create_engine
+from sqlalchemy import create_engine, pool
 
 from alembic import context
 
 # Загружаем .env для alembic
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Путь к пакету app

@@ -16,8 +16,7 @@ from app.schemas.operation import (
     OperationOut,
     OperationPatch,
 )
-from app.services import operation_service
-from app.services import stock_service
+from app.services import operation_service, stock_service
 from app.utils.dates import today
 from app.utils.enums import MeatType
 

@@ -5,6 +5,7 @@ from datetime import timedelta
 from httpx import AsyncClient
 
 from app.utils.dates import today
+
 OP = {"meat_type": "FILLET", "operation_date": "2026-09-04"}
 
 

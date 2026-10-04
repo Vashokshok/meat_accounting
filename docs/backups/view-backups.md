@@ -135,16 +135,16 @@ docker exec -it meat_db psql -U meat -d meat -c "DROP DATABASE meat_view;"
 ```bash
 DUMP=/var/backups/meat/meat_2026-09-29_0101.dump
 
-docker exec -i meat_db createdb -U meat meat_view
-docker exec -i meat_db pg_restore -U meat -d meat_view < $DUMP
-docker exec -it meat_db psql -U meat -d meat_view -c "select * from users;"
-docker exec -i meat_db dropdb -U meat meat_view
+docker compose exec -T db createdb -U meat meat_view
+docker compose exec -T db pg_restore -U meat -d meat_view < "$DUMP"
+docker compose exec -T db psql -U meat -d meat_view -c "select * from users;"
+docker compose exec -T db dropdb -U meat meat_view
 ```
 
 Внутри `psql` (пароль `meat`):
 
 ```bash
-docker exec -it meat_db psql -U meat -d meat_view
+docker compose exec db psql -U meat -d meat_view
 meat_view=# \dt            -- список таблиц
 meat_view=# select * from operation_changes;   -- история правок в JSONB
 ```

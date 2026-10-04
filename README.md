@@ -45,42 +45,46 @@
 
 ## Запуск
 
+### Сервер
+
+Production-развёртывание через Docker Compose (PostgreSQL + API) и Nginx описано
+в [`docs/backups/deploy.md`](docs/backups/deploy.md). Для API и пользовательского
+интерфейса используется FastAPI: он обслуживает готовые HTML-страницы из
+`frontend/`. Каталог `frontend/app/` — отдельный незавершённый прототип Next.js,
+в production-конфигурацию он не входит.
+
+### Локальная разработка
+
+Требуется Python 3.12 или новее.
+
 ```bash
-# 1. База
-docker run -d --name meat_db --restart unless-stopped \
-  -e POSTGRES_USER=meat -e POSTGRES_PASSWORD=meat -e POSTGRES_DB=meat \
-  -p 127.0.0.1:5434:5432 postgres:18-alpine
-
-# 2. Зависимости
-python3 -m venv ../venv && ../venv/bin/pip install -r requirements.txt
-
-# 3. Миграции и seed (admin/user1/user2, пароль meat123)
-../venv/bin/alembic upgrade head
-../venv/bin/python scripts/seed.py
-
-# 4. API
-../venv/bin/uvicorn app.main:app --reload --port 8000
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
+
+Создайте `.env` с `DATABASE_URL` и случайным `SECRET_KEY` (не короче 32
+символов). Для локальной БД используйте PostgreSQL. Затем выполните `alembic
+upgrade head`, `python scripts/seed.py` и запустите
+`uvicorn app.main:app --reload --port 8000`. Seed запросит логины и пароли
+сотрудников интерактивно; стандартных пользователей и паролей нет.
 
 ## Бэкапы
 
-Еженедельно (понедельник 02:00) `scripts/backup.ps1` делает `pg_dump` (custom,
-сжатие 9) через контейнер `meat_db`, копирует дамп в `C:\backups\meat`, хранит
-60 дней, старые удаляет; лог — `backup.log` рядом. Задача Планировщика:
-`MeatAccounting_WeeklyBackup`. Вся документация — в `docs/backups/`
-(просмотр бэкапов, восстановление, выкладка на сервер, проблемы). Восстановление:
+Бэкапы, расписание и восстановление описаны в `docs/backups/`. Не храните
+единственную копию на том же сервере, что и база.
+
+Тесты (нужна отдельная БД `meat_test` на PostgreSQL):
 
 ```bash
-docker exec -i meat_db pg_restore -U meat -d meat --clean --if-exists < meat_<дата>.dump
+createdb meat_test
+pip install -r requirements-dev.txt
+pytest tests/ -q
+ruff check app scripts tests
 ```
 
-Тесты (нужна БД `meat_test` на том же Postgres):
-
-```bash
-docker exec meat_db psql -U meat -c "CREATE DATABASE meat_test"
-../venv/bin/python -m pytest tests/ -q
-../venv/bin/ruff check app scripts tests
-```
-
-Переменные (`.env`): `DATABASE_URL`, `SECRET_KEY`, `ACCESS_TOKEN_EXPIRE_HOURS=24`,
-`TIMEZONE=Europe/Moscow`.
+Обязательные переменные `.env`: `DATABASE_URL` и криптографически случайный
+`SECRET_KEY` длиной от 32 символов. Дополнительно можно задать
+`ACCESS_TOKEN_EXPIRE_HOURS` и `TIMEZONE`.

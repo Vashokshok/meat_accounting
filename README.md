@@ -37,8 +37,8 @@
 | GET | `/api/v1/franchises` | Справочник (`?active_only=true`) |
 | POST | `/api/v1/franchises` | Новая франшиза |
 | PATCH | `/api/v1/franchises/{id}` | Переименование / отключение |
-| GET | `/api/v1/reports?period=today\|week\|month\|custom` | Отчёт по видам мяса: на начало, движение, на конец (`custom` + `date_from/date_to`) |
-| GET | `/api/v1/exports/excel` | Excel: листы «Сводка», «Операции», «История изменений» |
+| GET | `/api/v1/reports?period=today\|week\|month\|custom` | По умолчанию полный текущий календарный месяц; отчёт по видам мяса: на начало, движение, на конец (`custom` + `date_from/date_to`) |
+| GET | `/api/v1/exports/excel?period=month\|today\|custom` | Excel за месяц (по умолчанию), день или выбранный диапазон; `custom` принимает `date_from/date_to`. Листы «Сводка», «Операции», «История изменений» |
 
 Ошибки на русском: `409 INSUFFICIENT_STOCK` («Недостаточно мяса…»),
 `409 ALREADY_CANCELLED`, `401`, `404`. Доки: `/docs`.

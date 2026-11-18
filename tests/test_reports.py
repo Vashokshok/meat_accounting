@@ -1,6 +1,10 @@
 """Отчёты: остаток на начало + движение = остаток на конец."""
 
+import calendar
+
 from httpx import AsyncClient
+
+from app.utils.dates import today
 
 
 async def test_report_opening_closing(client: AsyncClient, auth_headers: dict):
@@ -30,3 +34,18 @@ async def test_report_opening_closing(client: AsyncClient, auth_headers: dict):
     assert fillet["opening"] == 30.0
     assert fillet["spit"] == 5.0
     assert fillet["closing"] == 25.0
+
+
+async def test_report_defaults_to_full_calendar_month(
+    client: AsyncClient, auth_headers: dict
+):
+    response = await client.get("/api/v1/reports", headers=auth_headers)
+    assert response.status_code == 200, response.text
+
+    current_day = today()
+    month_start = current_day.replace(day=1)
+    month_end = current_day.replace(
+        day=calendar.monthrange(current_day.year, current_day.month)[1]
+    )
+    assert response.json()["date_from"] == month_start.isoformat()
+    assert response.json()["date_to"] == month_end.isoformat()

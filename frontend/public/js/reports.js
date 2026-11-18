@@ -8,17 +8,19 @@ const API = {
 };
 
 let reportState = {
-    period: "today",
+    period: "month",
     dateFrom: null,
     dateTo: null,
 };
 
 const elements = {
     reportDate: document.getElementById("report-date"),
-    opening: document.getElementById("opening-stock"),
-    incoming: document.getElementById("incoming-value"),
-    spit: document.getElementById("spit-value"),
-    closing: document.getElementById("closing-stock"),
+    reportRows: document.getElementById("report-rows"),
+    reportPeriod: document.getElementById("report-period"),
+    monthPicker: document.getElementById("month-picker"),
+    reportMonth: document.getElementById("report-month"),
+    dayPicker: document.getElementById("day-picker"),
+    reportDay: document.getElementById("report-day"),
     excelButton: document.getElementById("excel-button"),
     lastUpdate: document.getElementById("last-update"),
     toast: document.getElementById("toast"),
@@ -44,55 +46,26 @@ function formatKg(value) {
     }
 
     return new Intl.NumberFormat("ru-RU", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
+        maximumFractionDigits: 3,
     }).format(number);
 }
 
-function formatSignedKg(value) {
-    if (value === null || value === undefined || value === "") {
-        return "?";
-    }
-
-    const number = Number(value);
-    if (!Number.isFinite(number)) {
-        return "?";
-    }
-
-    if (number === 0) {
-        return "0";
-    }
-
-    const sign = number > 0 ? "+" : "?";
-    return `${sign}${formatKg(Math.abs(number))}`;
+function formatDate(value) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Intl.DateTimeFormat("ru-RU", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+    }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
 function formatRange(dateFrom, dateTo) {
-    if (!dateFrom && !dateTo) {
-        return "???????";
+    if (dateFrom === dateTo) {
+        return formatDate(dateFrom);
     }
 
-    const formatter = new Intl.DateTimeFormat("ru-RU", {
-        day: "numeric",
-        month: "short",
-    });
-
-    const from = dateFrom ? new Date(dateFrom) : null;
-    const to = dateTo ? new Date(dateTo) : null;
-
-    if (from && to && from.getTime() === to.getTime()) {
-        return formatter.format(from);
-    }
-
-    if (from && to) {
-        return `${formatter.format(from)} ? ${formatter.format(to)}`;
-    }
-
-    if (from) {
-        return formatter.format(from);
-    }
-
-    return "???????";
+    return `${formatDate(dateFrom)} — ${formatDate(dateTo)}`;
 }
 
 let toastTimer = null;
@@ -167,17 +140,7 @@ async function checkAuth() {
     }
 }
 
-function selectReportRow(report) {
-    const items = Array.isArray(report?.items) ? report.items : [];
-    return (
-        items.find((item) => item.meat_type === "SKIN") ||
-        items.find((item) => item.meat_type === "FILLET") ||
-        items[0] ||
-        null
-    );
-}
-
-function buildReportUrl(period = "today", dateFrom = null, dateTo = null) {
+function buildReportUrl(period, dateFrom = null, dateTo = null) {
     const params = new URLSearchParams({ period });
 
     if (dateFrom) {
@@ -192,7 +155,7 @@ function buildReportUrl(period = "today", dateFrom = null, dateTo = null) {
 }
 
 function buildExportUrl() {
-    const params = new URLSearchParams({ period: reportState.period || "today" });
+    const params = new URLSearchParams({ period: reportState.period });
 
     if (reportState.dateFrom) {
         params.set("date_from", reportState.dateFrom);
@@ -206,28 +169,56 @@ function buildExportUrl() {
 }
 
 function renderReport(report) {
-    const row = selectReportRow(report);
-    reportState = {
-        period: report?.period || "today",
-        dateFrom: report?.date_from || null,
-        dateTo: report?.date_to || null,
+    const rows = Array.isArray(report?.items) ? report.items : [];
+    const meatNames = {
+        FILLET: "Филе",
+        SKIN: "С кожей",
     };
 
-    setText(elements.reportDate, formatRange(report?.date_from, report?.date_to));
+    elements.reportRows.replaceChildren();
+    for (const item of rows) {
+        const row = document.createElement("tr");
+        const values = [
+            meatNames[item.meat_type] || item.meat_type,
+            item.opening,
+            item.incoming,
+            item.spit,
+            item.write_off,
+            item.convection,
+            item.franchise,
+            item.closing,
+        ];
 
-    if (!row) {
-        setText(elements.opening, "?");
-        setText(elements.incoming, "?");
-        setText(elements.spit, "?");
-        setText(elements.closing, "?");
-        setText(elements.lastUpdate, "?????? ???????????");
-        return;
+        for (const value of values) {
+            const cell = document.createElement("td");
+            cell.textContent =
+                typeof value === "number" ? formatKg(value) : value;
+            row.appendChild(cell);
+        }
+
+        elements.reportRows.appendChild(row);
     }
 
-    setText(elements.opening, formatKg(row.opening));
-    setText(elements.incoming, formatSignedKg(row.incoming));
-    setText(elements.spit, formatSignedKg(row.spit));
-    setText(elements.closing, formatKg(row.closing));
+    if (rows.length === 0) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.colSpan = 8;
+        cell.textContent = "За выбранный период операций нет";
+        row.appendChild(cell);
+        elements.reportRows.appendChild(row);
+    }
+
+    reportState = {
+        period: "custom",
+        dateFrom: report.date_from,
+        dateTo: report.date_to,
+    };
+
+    setText(elements.reportDate, formatRange(report.date_from, report.date_to));
+    elements.reportMonth.value = report.date_from.slice(0, 7);
+    if (report.date_from === report.date_to) {
+        elements.reportDay.value = report.date_from;
+    }
 
     const now = new Date();
     const updateLabel = new Intl.DateTimeFormat("ru-RU", {
@@ -237,10 +228,38 @@ function renderReport(report) {
         minute: "2-digit",
     }).format(now);
 
-    setText(elements.lastUpdate, `??????????: ${updateLabel}`);
+    setText(elements.lastUpdate, `Обновлено: ${updateLabel}`);
 }
 
-async function loadReport(period = "today", dateFrom = null, dateTo = null) {
+function monthBounds(value) {
+    const match = /^(\d{4})-(\d{2})$/.exec(value);
+    if (!match) {
+        throw new Error("Выберите месяц");
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    if (month < 1 || month > 12) {
+        throw new Error("Выберите корректный месяц");
+    }
+
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    return {
+        dateFrom: `${match[1]}-${match[2]}-01`,
+        dateTo: `${match[1]}-${match[2]}-${String(lastDay).padStart(2, "0")}`,
+    };
+}
+
+function currentDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+async function loadReport(period = "month", dateFrom = null, dateTo = null) {
+    reportState = { period, dateFrom, dateTo };
     try {
         const url = buildReportUrl(period, dateFrom, dateTo);
         const data = await apiFetch(url);
@@ -248,13 +267,8 @@ async function loadReport(period = "today", dateFrom = null, dateTo = null) {
         return data;
     } catch (error) {
         console.error("Report error:", error);
-        showToast("?? ??????? ????????? ?????");
-        setText(elements.reportDate, "???????");
-        setText(elements.opening, "?");
-        setText(elements.incoming, "?");
-        setText(elements.spit, "?");
-        setText(elements.closing, "?");
-        setText(elements.lastUpdate, "?????? ????????");
+        showToast(error.message || "Не удалось загрузить отчёт");
+        setText(elements.lastUpdate, "Не удалось обновить отчёт");
         return null;
     }
 }
@@ -284,7 +298,7 @@ async function downloadExcel() {
 
         if (!response.ok) {
             const payload = await response.json().catch(() => null);
-            throw new Error(payload?.detail || "?? ??????? ??????? Excel");
+            throw new Error(payload?.detail || "Не удалось скачать Excel");
         }
 
         const blob = await response.blob();
@@ -301,7 +315,7 @@ async function downloadExcel() {
         URL.revokeObjectURL(url);
     } catch (error) {
         console.error("Excel export error:", error);
-        showToast(error.message || "?? ??????? ??????? Excel");
+        showToast(error.message || "Не удалось скачать Excel");
     }
 }
 
@@ -309,12 +323,56 @@ function setupExcelButton() {
     elements.excelButton?.addEventListener("click", downloadExcel);
 }
 
+function setupMonthPicker() {
+    elements.reportMonth?.addEventListener("change", async () => {
+        try {
+            const { dateFrom, dateTo } = monthBounds(elements.reportMonth.value);
+            await loadReport("custom", dateFrom, dateTo);
+        } catch (error) {
+            showToast(error.message);
+        }
+    });
+}
+
+function setupPeriodPicker() {
+    elements.reportPeriod?.addEventListener("change", async () => {
+        const isMonth = elements.reportPeriod.value === "month";
+        elements.monthPicker.hidden = !isMonth;
+        elements.dayPicker.hidden = isMonth;
+
+        try {
+            if (isMonth) {
+                const { dateFrom, dateTo } = monthBounds(elements.reportMonth.value);
+                await loadReport("custom", dateFrom, dateTo);
+            } else {
+                if (!elements.reportDay.value) {
+                    elements.reportDay.value = currentDate();
+                }
+                const date = elements.reportDay.value;
+                await loadReport("custom", date, date);
+            }
+        } catch (error) {
+            showToast(error.message);
+        }
+    });
+
+    elements.reportDay?.addEventListener("change", async () => {
+        if (!elements.reportDay.value) {
+            showToast("Выберите дату");
+            return;
+        }
+        await loadReport("custom", elements.reportDay.value, elements.reportDay.value);
+    });
+}
+
 async function initReports() {
     const authenticated = await checkAuth();
     if (!authenticated) return;
 
-    await loadReport("today");
+    setupMonthPicker();
+    setupPeriodPicker();
     setupExcelButton();
+    await loadReport("month");
 }
 
 initReports();

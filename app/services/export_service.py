@@ -5,6 +5,7 @@ from openpyxl import Workbook
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.franchise import Franchise
 from app.models.operation import Operation
 from app.models.operation_change import OperationChange
 from app.models.user import User
@@ -57,8 +58,14 @@ async def build_excel(
 
     ops = (
         await db.execute(
-            select(Operation, User.display_name, User.username)
+            select(
+                Operation,
+                User.display_name,
+                User.username,
+                Franchise.name,
+            )
             .join(User, User.id == Operation.created_by)
+            .outerjoin(Franchise, Franchise.id == Operation.franchise_id)
             .where(Operation.operation_date >= frm, Operation.operation_date < to_excl)
             .order_by(Operation.id)
         )
@@ -66,7 +73,21 @@ async def build_excel(
     ws2 = wb.create_sheet("Операции")
     _fill_sheet(
         ws2,
-        ["ID", "Дата", "Тип", "Мясо", "Кг", "Франшиза", "Статус", "Автор", "Коммент"],
+        [
+            "ID",
+            "Дата",
+            "Тип",
+            "Мясо",
+            "Кг",
+            "ID франшизы",
+            "Статус",
+            "Автор",
+            "Коммент",
+            "Название франшизы",
+            "Автор ID",
+            "Создано",
+            "Обновлено",
+        ],
         [
             [
                 o.id,
@@ -78,23 +99,45 @@ async def build_excel(
                 o.status,
                 display_name or username,
                 o.comment,
+                franchise_name,
+                o.created_by,
+                o.created_at.isoformat(),
+                o.updated_at.isoformat(),
             ]
-            for o, display_name, username in ops
+            for o, display_name, username, franchise_name in ops
         ],
     )
 
     changes = (
         await db.execute(
-            select(OperationChange, User.display_name, User.username)
+            select(
+                OperationChange,
+                User.display_name,
+                User.username,
+                Operation.operation_date,
+            )
+            .join(Operation, Operation.id == OperationChange.operation_id)
             .join(User, User.id == OperationChange.changed_by)
+            .where(
+                Operation.operation_date >= frm,
+                Operation.operation_date < to_excl,
+            )
             .order_by(OperationChange.id)
-            .limit(5000)
         )
     ).all()
     ws3 = wb.create_sheet("История изменений")
     _fill_sheet(
         ws3,
-        ["ID", "Операция", "Кто", "Когда", "Было", "Стало"],
+        [
+            "ID",
+            "Операция",
+            "Кто",
+            "Когда",
+            "Было",
+            "Стало",
+            "Дата операции",
+            "ID пользователя",
+        ],
         [
             [
                 c.id,
@@ -103,8 +146,10 @@ async def build_excel(
                 c.changed_at.isoformat(),
                 str(c.old_data),
                 str(c.new_data),
+                operation_date.isoformat(),
+                c.changed_by,
             ]
-            for c, display_name, username in changes
+            for c, display_name, username, operation_date in changes
         ],
     )
 

@@ -15,11 +15,11 @@
 
     <link
         rel="stylesheet"
-        href="/static/css/reports.css?v=desktop-layout"
+        href="/static/css/reports.css?v=day-month-excel"
     >
 
     <script
-        src="/static/js/reports.js"
+        src="/static/js/reports.js?v=day-month-excel"
         defer
     ></script>
 </head>
@@ -49,7 +49,7 @@
                 <h1>Отчёты</h1>
 
                 <p id="report-date">
-                    Сегодня
+                    За месяц
                 </p>
             </div>
 
@@ -100,94 +100,45 @@
         >
 
             <div class="report-title-row">
-
                 <div>
-                    <h2>С кожей</h2>
-
-                    <p>
-                        Движение мяса за сегодня
-                    </p>
+                    <h2>Движение мяса</h2>
+                    <p>Остатки и операции за выбранный период</p>
                 </div>
-
-                <div
-                    class="report-status"
-                    id="report-status"
-                >
-                    Загрузка...
+                <div class="report-filters">
+                    <label class="period-picker" for="report-period">
+                        <span>Период</span>
+                        <select id="report-period">
+                            <option value="month">Месяц</option>
+                            <option value="day">День</option>
+                        </select>
+                    </label>
+                    <label class="date-picker" id="month-picker" for="report-month">
+                        <span>Месяц</span>
+                        <input id="report-month" type="month">
+                    </label>
+                    <label class="date-picker" id="day-picker" for="report-day" hidden>
+                        <span>День</span>
+                        <input id="report-day" type="date">
+                    </label>
                 </div>
-
             </div>
 
-
-            <!-- START -->
-
-            <div class="report-row">
-
-                <span class="report-label">
-                    На начало
-                </span>
-
-                <strong
-                    class="report-value"
-                    id="opening-stock"
-                >
-                    —
-                </strong>
-
-            </div>
-
-
-            <!-- INCOMING -->
-
-            <div class="report-row">
-
-                <span class="report-label">
-                    Приход
-                </span>
-
-                <strong
-                    class="report-value"
-                    id="incoming-value"
-                >
-                    +0
-                </strong>
-
-            </div>
-
-
-            <!-- SPIT -->
-
-            <div class="report-row">
-
-                <span class="report-label">
-                    Вертель
-                </span>
-
-                <strong
-                    class="report-value expense"
-                    id="spit-value"
-                >
-                    −0
-                </strong>
-
-            </div>
-
-
-            <!-- END -->
-
-            <div class="report-row report-row-total">
-
-                <span class="report-label">
-                    На конец
-                </span>
-
-                <strong
-                    class="report-value total"
-                    id="closing-stock"
-                >
-                    —
-                </strong>
-
+            <div class="report-table-container">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Мясо</th>
+                            <th>На начало</th>
+                            <th>Приход</th>
+                            <th>Вертель</th>
+                            <th>Списание</th>
+                            <th>Конвектомат</th>
+                            <th>Франшиза</th>
+                            <th>На конец</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-rows"></tbody>
+                </table>
             </div>
 
         </section>

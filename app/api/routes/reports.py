@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/v1/reports", tags=["reports"])
 async def report(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
-    period: str = Query(default="today"),
+    period: str = Query(default="month"),
     date_from: date | None = None,
     date_to: date | None = None,
 ) -> ReportOut:

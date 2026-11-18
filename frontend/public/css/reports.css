@@ -177,8 +177,8 @@ body {
 
 .report-title-row {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
 
     gap: 12px;
 
@@ -211,6 +211,77 @@ body {
 
     font-size: 11px;
     line-height: 16px;
+}
+
+.report-filters {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.period-picker,
+.date-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: var(--secondary);
+    font-size: 12px;
+}
+
+.period-picker select,
+.date-picker input {
+    min-height: 36px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-light);
+    color: var(--text);
+    font: inherit;
+}
+
+.report-title-row [hidden] {
+    display: none;
+}
+
+.report-table-container {
+    overflow-x: auto;
+    border-top: 1px solid var(--border);
+}
+
+.report-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.report-table th,
+.report-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.report-table th {
+    color: var(--secondary);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.report-table th:first-child,
+.report-table td:first-child {
+    text-align: left;
+}
+
+.report-table td:first-child,
+.report-table td:last-child {
+    font-weight: 700;
+}
+
+.report-table td:last-child {
+    color: var(--orange);
 }
 
 
